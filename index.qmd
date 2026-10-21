@@ -1,11 +1,10 @@
 ---
-title: "Neylit-Yrigoin"
+title: "Analisis de piña"
 format: html
 editor: visual
 editor_options: 
   chunk_output_type: console
 ---
-
 
 # Análisis de diseño experimental
 
