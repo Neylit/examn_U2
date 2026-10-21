@@ -91,3 +91,51 @@ pl <- plot_smr(data = tab
 
 pl
 ```
+
+
+# Análisis de variancia
+
+```{r}
+fb_factorial <- fb %>%
+  filter(tratamiento != "T0") %>%
+  droplevels()
+
+md <- aov(
+  ancho_fruto ~ bloque + boro * potasio,
+  data = fb_factorial
+)
+
+anova(md)
+```
+
+# Comparación de medias
+
+```{r}
+mc <- emmeans(md, ~ boro * potasio)
+
+# Letras de significancia
+tab <- cld(
+  mc,
+  adjust = "tukey",
+  Letters = letters,
+  decreasing = TRUE
+)
+
+tab
+```
+
+# Representación gráfica
+
+```{r}
+pl <- plot_smr(
+  data = tab,
+  x = "boro",
+  y = "emmean",
+  group = "potasio",
+  error = "SE",
+  sig = ".group",
+  ylab = "Ancho de fruto (cm)"
+)
+
+pl
+```
