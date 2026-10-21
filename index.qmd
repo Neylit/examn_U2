@@ -2,25 +2,93 @@
 title: "Neylit-Yrigoin"
 format: html
 editor: visual
+editor_options: 
+  chunk_output_type: console
 ---
 
-## Quarto
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+# Análisis de diseño experimental
 
-## Running Code
+## Base de datos
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+>https://docs.google.com/spreadsheets/d/1sQFjV7mwNMkNSpWflh1s9y3CCX9bI8cTjEHbCu3Sib0/edit?gid=0#gid=0
+
+## Indentificar los factores 
+
+1. Factor 1: boro
+1. Factor 2: potasio
+
+## Identificar el modelo
+
+Factorial en DBCA
+
+$$Y = \mu + bloque + B + P + B*P + \xi$$
+
+# Activar los paquetes 
+
+# Project steup
 
 ```{r}
-1 + 1
+#| label: setup
+
+source('https://inkaverse.com/setup.r')
 ```
 
-You can add options to executable code like this
+# Activar los paquetes
 
 ```{r}
-#| echo: false
-2 * 2
+gs <- "https://docs.google.com/spreadsheets/d/1sQFjV7mwNMkNSpWflh1s9y3CCX9bI8cTjEHbCu3Sib0/edit?gid=0#gid=0" %>%
+  as_sheets_id()
+
+fb <- gs %>%
+  range_read(ss = ., sheet = "fb",
+             col_types = "ccccddddd") %>%
+  mutate(across(c(1:4), ~ as.factor(.)))
+
+fb %>% str()
+summary(fb$peso_fruto)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+# Análisis de variancia
+
+```{r}
+# aov() ó lm()
+
+fb_factorial <- fb %>%
+  filter(tratamiento != "T0") %>%
+  droplevels()
+
+md <- aov(peso_fruto ~ bloque + boro + potasio +
+            boro * potasio, fb_factorial)
+
+anova(md)
+```
+
+# Comparación de medias
+
+```{r}
+mc <- emmeans(md, ~ boro * potasio)
+
+# Letras de significancia
+tab <- cld(mc,
+           adjust = "tukey",
+           Letters = letters,
+           decreasing = TRUE)
+
+tab
+```
+
+# Representación gráfica
+
+```{r}
+pl <- plot_smr(data = tab
+               , x = "boro"
+               , y = "emmean"
+               , group = "potasio"
+               , error = "SE"
+               , sig = ".group"
+               , ylab = "Peso del fruto (kg)"
+               )
+
+pl
+```
